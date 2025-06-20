@@ -3,11 +3,11 @@
 }
 .sidebar {
     position: fixed;
-    top: 60px;
+    left: 6px;
     height: 75px;
     margin: 0;
-    padding: 10px 0 5px 0;
-    border-bottom: solid 1px #cccccc;
+    padding: 0px 0 5px 0;
+    border-bottom: solid 1000px #ffffff;
     background-color: #ffffff;
 }
 .sidebar ul {
@@ -15,7 +15,7 @@
     padding: 0 10px 0 10px;
   }
 .sidebar li {
-    display: inline-block;
+    display: block;
     margin: 0px 0px 5px 0px;
     padding: 5px 5px 5px 5px;
     min-width: 50px;
@@ -23,3 +23,7 @@
     border-bottom: solid 2px #cccccc;
     background-color: #eeeeee;
   }
+.content{
+  margin-left: 150px;
+
+}
