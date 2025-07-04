@@ -1,33 +1,90 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>その他</title>
-        <link rel="stylesheet" href="index.css">
-    </head>
-    <body>
-        <div class="sidebar">
-          <ul>
-            <li><a href="index.html">ホーム</a></li>
-            <li><a href="news.html">NEWS</a></li>
-            <li><a href="character.html">キャラクター</a></li>
-            <li><a href="sonota.html">その他</a></li>
-          </ul>
-        </div>
-        <ul>
-            <div class="content">
-            <li><p><strong>4月</strong></p></li>
-            <li><p><strong>5月</strong></p></li>
-            <li><p><strong>6月</strong></p></li>
-            <li><p><strong>7月</strong></p></li>
-            <li><p><strong>8月</strong></p></li>
-            <li><p><strong>9月</strong></p></li>
-            <li><p><strong>10月</strong></p></li>
-            <li><p><strong>11月</strong></p></li>
-            <li><p><strong>12月</strong></p></li>
-            <li><p><strong>1月</strong></p></li>
-            <li><p><strong>2月</strong></p></li>
-            <li><p><strong>3月</strong></p></li>
-            </div>
-        </ul>
-    </body>
+<head>
+  <meta charset="UTF-8">
+  <title>シンプル掲示板（保存機能付き）</title>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5;}
+    #bbs { width: 400px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px;}
+    #messages { height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;}
+    .message { margin-bottom: 10px; }
+    .name { font-weight: bold; color: #0077aa;}
+    .text { margin-left: 5px;}
+  </style>
+</head>
+<body>
+  <div id="bbs">
+    <h2>雑談掲示板</h2>
+    <div id="messages"></div>
+    <form id="form">
+      <input type="text" id="name" placeholder="名前" required style="width:80px;">
+      <input type="text" id="text" placeholder="メッセージを入力" required style="width:220px;">
+      <button type="submit">投稿</button>
+    </form>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "bbs_messages";
+
+    const form = document.getElementById('form');
+    const messages = document.getElementById('messages');
+    const nameInput = document.getElementById('name');
+    const textInput = document.getElementById('text');
+
+    // HTMLエスケープ（XSS対策）
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, function(match) {
+        const escape = { '&': '&', '<': '<', '>': '>', '"': '&quot;', "'": '&#39;' };
+        return escape[match];
+      });
+    }
+
+    // ローカルストレージから投稿一覧を取得/書き換え
+    function loadMessages() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+          return JSON.parse(data);
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    function saveMessages(arr) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    // 表示更新
+    function renderMessages(arr) {
+      messages.innerHTML = '';
+      arr.forEach(message => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `<span class="name">${escapeHtml(message.name)}</span>: <span class="text">${escapeHtml(message.text)}</span>`;
+        messages.appendChild(msgDiv);
+      });
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // 初期化
+    let bbsArr = loadMessages();
+    renderMessages(bbsArr);
+
+    // 投稿
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const text = textInput.value.trim();
+
+      if (name && text) {
+        const newMsg = { name, text };
+        bbsArr.push(newMsg);
+        renderMessages(bbsArr);
+        saveMessages(bbsArr);
+        textInput.value = '';
+        textInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
