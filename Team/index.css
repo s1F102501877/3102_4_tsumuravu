@@ -2,27 +2,31 @@
     color: red;
 }
 .sidebar {
-    position: fixed;
-    left: 6px;
-    height: 75px;
-    margin: 0;
-    padding: 0px 0 5px 0;
-    border-bottom: solid 1000px #ffffff;
-    background-color: #ffffff;
-    font-size: 30px ;
-}
-.sidebar ul {
-    margin: 0px;
-    padding: 0 10px 0 10px;
-  }
-.sidebar li {
-    display: block;
-    margin: 50px 0px 5px 0px;
-    padding: 5px 5px 5px 5px;
-    min-width: 50px;
-    text-align: center;
-    border-bottom: solid 2px #cccccc;
-    background-color: #eeeeee;
+      width: 200px;
+      background-color: #3f72af;
+      padding: 20px;
+      height: 100vh;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .sidebar ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .sidebar li {
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      display: block;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #112d4e;
+      padding-left: 10px;
+      border-radius: 4px;
   }
 .content{
   margin-left: 250px;
