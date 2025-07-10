@@ -2,14 +2,10 @@
 .red{
     color: red;
 }
-
-      font-family: 'Helvetica Neue', sans-serif;
-      background-color: #f4f7f9;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-    }
+img.gazou{
+  width: 800px;
+  height: auto; 
+}
     .sidebar {
       position: fixed;
       width: 150px;
