@@ -1,90 +1,119 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>シンプル掲示板（保存機能付き）</title>
-  <style>
-    body { font-family: sans-serif; background: #f5f5f5;}
-    #bbs { width: 400px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px;}
-    #messages { height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;}
-    .message { margin-bottom: 10px; }
-    .name { font-weight: bold; color: #0077aa;}
-    .text { margin-left: 5px;}
-  </style>
+  <link rel="stylesheet" href="index.css">
+    <meta charset="UTF-8">
+    <title>Firebase 掲示板</title>
+    <style>
+        body { font-family: sans-serif; background: #f5f5f5;}
+        #bbs { width: 700px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        #messages { height: 500px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; background: #fafafa; border-radius: 4px;}
+        .message { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px dotted #eee;}
+        .message:last-child { border-bottom: none; }
+        .name { font-weight: bold; color: #0077aa;}
+        .text { margin-left: 5px; word-wrap: break-word;}
+        .timestamp { font-size: 0.8em; color: #888; float: right;}
+        #form { display: flex; gap: 5px;}
+        #form input[type="text"] { border: 1px solid #ccc; padding: 8px; border-radius: 4px;}
+        #form input#name { flex-basis: 80px;}
+        #form input#text { flex-grow: 1;}
+        #form button { background: #0077aa; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;}
+        #form button:hover { background: #005588;}
+    </style>
 </head>
 <body>
-  <div id="bbs">
-    <h2>雑談掲示板</h2>
-    <div id="messages"></div>
-    <form id="form">
-      <input type="text" id="name" placeholder="名前" required style="width:80px;">
-      <input type="text" id="text" placeholder="メッセージを入力" required style="width:220px;">
-      <button type="submit">投稿</button>
-    </form>
+  <div class="sidebar">
+    <ul>
+      <li><a href="index.html">ホーム</a></li>
+      <li><a href="news.html">NEWS</a></li>
+      <li><a href="character.html">キャラクター</a></li>
+      <li><a href="sonota.html">雑談</a></li>
+    </ul>
   </div>
+    <div id="bbs">
+        <h2>雑談掲示板</h2>
+        <div id="messages"></div>
+        <form id="form">
+            <input type="text" id="name" placeholder="名前" required>
+            <input type="text" id="text" placeholder="メッセージを入力" required>
+            <button type="submit">投稿</button>
+        </form>
+    </div>
 
-  <script>
-    const STORAGE_KEY = "bbs_messages";
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-    const form = document.getElementById('form');
-    const messages = document.getElementById('messages');
-    const nameInput = document.getElementById('name');
-    const textInput = document.getElementById('text');
+    <script>
+        // 🔁 あなたの Firebase 設定に置き換えてください
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTQ303r008m0A-HlHg1Il6lIzdElBAjTU",
+            authDomain: "inilad.firebaseapp.com",
+            databaseURL: "https://inilad-default-rtdb.firebaseio.com",
+            projectId: "inilad",
+            storageBucket: "inilad.firebasestorage.app",
+            messagingSenderId: "979808509972",
+            appId: "1:979808509972:web:64a60bcef39b86863b8701"
+        };
 
-    // HTMLエスケープ（XSS対策）
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, function(match) {
-        const escape = { '&': '&', '<': '<', '>': '>', '"': '&quot;', "'": '&#39;' };
-        return escape[match];
-      });
-    }
+        // 初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const messagesRef = db.ref('messages'); // リファレンスを定義
 
-    // ローカルストレージから投稿一覧を取得/書き換え
-    function loadMessages() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (data) {
-          return JSON.parse(data);
-        }
-      } catch (e) {}
-      return [];
-    }
+        const form = document.getElementById('form');
+        const messagesDiv = document.getElementById('messages'); // id名の重複を避けるため変更
+        const nameInput = document.getElementById('name');
+        const textInput = document.getElementById('text');
 
-    function saveMessages(arr) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
+        // 投稿処理
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const text = textInput.value.trim();
+            if (name && text) {
+                // タイムスタンプを追加
+                messagesRef.push({
+                    name: name,
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP // Firebaseサーバーのタイムスタンプを使用
+                });
+                textInput.value = ''; // メッセージ入力欄をクリア
+            }
+        });
 
-    // 表示更新
-    function renderMessages(arr) {
-      messages.innerHTML = '';
-      arr.forEach(message => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message';
-        msgDiv.innerHTML = `<span class="name">${escapeHtml(message.name)}</span>: <span class="text">${escapeHtml(message.text)}</span>`;
-        messages.appendChild(msgDiv);
-      });
-      messages.scrollTop = messages.scrollHeight;
-    }
+        // メッセージ表示処理（タイムスタンプで順序付け）
+        // orderByChild('timestamp')でタイムスタンプを基準にソートし、
+        // limitToLast(100)で最新100件に限定する例
+        messagesRef.orderByChild('timestamp').limitToLast(100).on('value', snapshot => {
+            const data = snapshot.val();
+            messagesDiv.innerHTML = ''; // 既存のメッセージをクリア
 
-    // 初期化
-    let bbsArr = loadMessages();
-    renderMessages(bbsArr);
+            if (data) {
+                // 取得したデータを配列に変換し、タイムスタンプでソート（念のため）
+                const messageList = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                })).sort((a, b) => a.timestamp - b.timestamp);
 
-    // 投稿
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = nameInput.value.trim();
-      const text = textInput.value.trim();
+                messageList.forEach(m => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'message';
 
-      if (name && text) {
-        const newMsg = { name, text };
-        bbsArr.push(newMsg);
-        renderMessages(bbsArr);
-        saveMessages(bbsArr);
-        textInput.value = '';
-        textInput.focus();
-      }
-    });
-  </script>
+                    // タイムスタンプを整形して表示
+                    const date = new Date(m.timestamp);
+                    const formattedTime = date.toLocaleDateString('ja-JP') + ' ' + date.toLocaleTimeString('ja-JP');
+
+                    msgDiv.innerHTML = `
+                        <span class="name">${m.name}</span>:
+                        <span class="text">${m.text}</span>
+                        <span class="timestamp">${formattedTime}</span>
+                    `;
+                    messagesDiv.appendChild(msgDiv);
+                });
+            }
+            // スクロールを一番下まで移動
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+    </script>
 </body>
 </html>
