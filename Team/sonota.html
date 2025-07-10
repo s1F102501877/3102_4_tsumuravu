@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>シンプル掲示板（保存機能付き）</title>
+  <title>Firebase 掲示板</title>
   <style>
     body { font-family: sans-serif; background: #f5f5f5;}
     #bbs { width: 400px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px;}
@@ -23,67 +23,54 @@
     </form>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
   <script>
-    const STORAGE_KEY = "bbs_messages";
+    // 🔁 あなたの Firebase 設定に置き換えてください
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTQ303r008m0A-HlHg1Il6lIzdElBAjTU",
+      authDomain: "inilad.firebaseapp.com",
+      databaseURL: "https://inilad-default-rtdb.firebaseio.com",
+      projectId: "inilad",
+      storageBucket: "inilad.firebasestorage.app",
+      messagingSenderId: "979808509972",
+      appId: "1:979808509972:web:64a60bcef39b86863b8701"
+    };
+
+    // 初期化
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const form = document.getElementById('form');
     const messages = document.getElementById('messages');
     const nameInput = document.getElementById('name');
     const textInput = document.getElementById('text');
 
-    // HTMLエスケープ（XSS対策）
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, function(match) {
-        const escape = { '&': '&', '<': '<', '>': '>', '"': '&quot;', "'": '&#39;' };
-        return escape[match];
-      });
-    }
-
-    // ローカルストレージから投稿一覧を取得/書き換え
-    function loadMessages() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (data) {
-          return JSON.parse(data);
-        }
-      } catch (e) {}
-      return [];
-    }
-
-    function saveMessages(arr) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-
-    // 表示更新
-    function renderMessages(arr) {
-      messages.innerHTML = '';
-      arr.forEach(message => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message';
-        msgDiv.innerHTML = `<span class="name">${escapeHtml(message.name)}</span>: <span class="text">${escapeHtml(message.text)}</span>`;
-        messages.appendChild(msgDiv);
-      });
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    // 初期化
-    let bbsArr = loadMessages();
-    renderMessages(bbsArr);
-
     // 投稿
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const name = nameInput.value.trim();
       const text = textInput.value.trim();
-
       if (name && text) {
-        const newMsg = { name, text };
-        bbsArr.push(newMsg);
-        renderMessages(bbsArr);
-        saveMessages(bbsArr);
+        db.ref('messages').push({ name, text });
         textInput.value = '';
-        textInput.focus();
       }
+    });
+
+    // メッセージ表示
+    db.ref('messages').on('value', snapshot => {
+      const data = snapshot.val();
+      messages.innerHTML = '';
+      for (let key in data) {
+        const m = data[key];
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `<span class="name">${m.name}</span>: <span class="text">${m.text}</span>`;
+        messages.appendChild(msgDiv);
+      }
+      messages.scrollTop = messages.scrollHeight;
     });
   </script>
 </body>
